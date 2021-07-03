@@ -1,0 +1,9 @@
+DEFAULT_IMAGES = ['jpg', 'png', 'SVG', 'Webp']
+
+DEFAULT_MEDIA = ['mp3', 'mp4', 'mpeg4', 'WMV', '3gp', 'WebM']
+
+DEFAULT_DOCUMENT = ['doc', 'Docx', 'CSV', 'pdf']
+
+DEFAULT_UPLOAD_TO_AWS_S3 = DEFAULT_IMAGES + DEFAULT_MEDIA
+
+DEFAULT_UPLOAD_TO_GCS = DEFAULT_DOCUMENT
