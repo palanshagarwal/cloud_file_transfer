@@ -1,8 +1,8 @@
-DEFAULT_IMAGES = ['jpg', 'png', 'SVG', 'Webp']
+DEFAULT_IMAGES = ['jpg', 'png', 'svg', 'webp']
 
-DEFAULT_MEDIA = ['mp3', 'mp4', 'mpeg4', 'WMV', '3gp', 'WebM']
+DEFAULT_MEDIA = ['mp3', 'mp4', 'mpeg4', 'wmv', '3gp', 'webm']
 
-DEFAULT_DOCUMENT = ['doc', 'Docx', 'CSV', 'pdf']
+DEFAULT_DOCUMENT = ['doc', 'docx', 'csv', 'pdf']
 
 DEFAULT_UPLOAD_TO_AWS_S3 = DEFAULT_IMAGES + DEFAULT_MEDIA
 
