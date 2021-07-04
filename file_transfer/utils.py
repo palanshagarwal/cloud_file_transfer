@@ -2,6 +2,8 @@ from constants import *
 
 from dotenv import dotenv_values
 from boto3.s3.transfer import S3Transfer
+from google.cloud import storage
+
 import boto3
 import os
 import multiprocessing as mp
@@ -38,12 +40,21 @@ class CloudUpload(object):
                 transfer.upload_file(file_path, self.config['AWS_BUCKET_NAME'], file)
 
                 print('upload succeeded for ' + file_path + ' to ' + platform)
-                print(LINE_SEPERATOR)
             except Exception as e:
                 print('upload failed for ' + file_path + ' to ' + platform + ' with message: ' + str(e))
-                print(LINE_SEPERATOR)
+
+            print(LINE_SEPERATOR)
         elif platform == GCS:
-            print('uploaded ' + file_path + ' to ' + platform)
+            try:
+                client = storage.Client.from_service_account_json(json_credentials_path=self.config['GCS_JSON_CREDENTIALS_PATH'])
+                bucket = client.get_bucket(self.config['GCS_BUCKET_NAME'])
+
+                blob = bucket.blob(file)
+                blob.upload_from_filename(filename=file_path)
+
+                print('upload succeeded for ' + file_path + ' to ' + platform)
+            except Exception as e:
+                print('upload failed for ' + file_path + ' to ' + platform + ' with message: ' + str(e))
             print(LINE_SEPERATOR)
 
     def process_dir(self):
