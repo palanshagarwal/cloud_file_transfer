@@ -5,6 +5,7 @@ import boto3
 
 from cloud_file_transfer.utils import CloudUpload
 from dotenv import dotenv_values
+from google.cloud import storage
 
 class TestCloudUpload(unittest.TestCase):
     ENV_FILE_PATH = '/Users/pygeek/repos/ecodedash/cloud_file_transfer/.env'
@@ -31,7 +32,26 @@ class TestCloudUpload(unittest.TestCase):
         client.delete_objects(Bucket=self.config['AWS_BUCKET_NAME'],
                               Delete={'Objects': [{'Key': key}]})
 
-    def tttttest_gcs_upload_success(self):
+    def head_object_gcs(self, key):
+        "check if a file exists on gcs"
+        client = storage.Client.from_service_account_json(json_credentials_path=self.config['GCS_JSON_CREDENTIALS_PATH'])
+        bucket = client.get_bucket(self.config['GCS_BUCKET_NAME'])
+
+        try:
+            stats = storage.Blob(bucket=bucket, name=key).exists(client)
+        except Exception as e:
+            return False
+        else:
+            return True
+
+    def delete_object_gcs(self, key):
+        client = storage.Client.from_service_account_json(json_credentials_path=self.config['GCS_JSON_CREDENTIALS_PATH'])
+        bucket = client.get_bucket(self.config['GCS_BUCKET_NAME'])
+
+        blob = bucket.blob(key)
+        blob.delete()
+
+    def test_gcs_upload_success(self):
         test_id = str(uuid.uuid4())
         self.config = dotenv_values(self.ENV_FILE_PATH)
 
@@ -41,9 +61,19 @@ class TestCloudUpload(unittest.TestCase):
         gcs_file_path = '/tmp/' + gcs_file_name
         with open(gcs_file_path, 'w') as document: pass
 
+        cp = CloudUpload('/tmp', self.ENV_FILE_PATH)
+        cp.process_dir()
+
         # Delete the mock files from system
-        print(s3_file_name)
         os.remove(gcs_file_path)
+
+        status = self.head_object_gcs(gcs_file_name)
+
+        # delete file from gcs
+        self.delete_object_gcs(gcs_file_name)
+
+        self.assertEqual(status, True)
+
 
     def test_aws_upload_success(self):
         test_id = str(uuid.uuid4())
@@ -60,7 +90,6 @@ class TestCloudUpload(unittest.TestCase):
         cp.process_dir()
 
         # Delete the mock files from system
-        print(s3_file_name)
         os.remove(s3_file_path)
 
         # check uploaded file on AWS S3
@@ -69,7 +98,6 @@ class TestCloudUpload(unittest.TestCase):
         # delete the file from s3
         self.delete_object_s3(s3_file_name)
 
-        # actual = add_fish_to_aquarium(fish_list=["shark", "tuna"])
         self.assertEqual(status, True)
 
 
