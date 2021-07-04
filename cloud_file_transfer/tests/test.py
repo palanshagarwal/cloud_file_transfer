@@ -8,7 +8,6 @@ from dotenv import dotenv_values
 from google.cloud import storage
 
 class TestCloudUpload(unittest.TestCase):
-    ENV_FILE_PATH = '/Users/pygeek/repos/ecodedash/cloud_file_transfer/.env'
     config = {}
 
     def head_object_s3(self, key):
@@ -53,7 +52,7 @@ class TestCloudUpload(unittest.TestCase):
 
     def test_gcs_upload_success(self):
         test_id = str(uuid.uuid4())
-        self.config = dotenv_values(self.ENV_FILE_PATH)
+        self.config = dotenv_values()
 
         gcs_upload_ext = self.config['DEFAULT_UPLOAD_TO_GCS'].split(',')[0]
         # create a mock file to test GCS upload
@@ -61,7 +60,7 @@ class TestCloudUpload(unittest.TestCase):
         gcs_file_path = '/tmp/' + gcs_file_name
         with open(gcs_file_path, 'w') as document: pass
 
-        cp = CloudUpload('/tmp', self.ENV_FILE_PATH)
+        cp = CloudUpload('/tmp')
         cp.process_dir()
 
         # Delete the mock files from system
@@ -77,7 +76,7 @@ class TestCloudUpload(unittest.TestCase):
 
     def test_aws_upload_success(self):
         test_id = str(uuid.uuid4())
-        self.config = dotenv_values(self.ENV_FILE_PATH)
+        self.config = dotenv_values()
 
         # get a extension for aws upload set in config
         s3_upload_ext = self.config['DEFAULT_UPLOAD_TO_AWS_S3'].split(',')[0]
@@ -86,7 +85,7 @@ class TestCloudUpload(unittest.TestCase):
         s3_file_path = '/tmp/' + s3_file_name
         with open(s3_file_path, 'w') as document: pass
 
-        cp = CloudUpload('/tmp', self.ENV_FILE_PATH)
+        cp = CloudUpload('/tmp')
         cp.process_dir()
 
         # Delete the mock files from system
@@ -99,9 +98,3 @@ class TestCloudUpload(unittest.TestCase):
         self.delete_object_s3(s3_file_name)
 
         self.assertEqual(status, True)
-
-
-# if __name__ == "__main__":
-#     if len(sys.argv) > 1:
-#         TestCloudUpload.ENV_FILE_PATH = sys.argv.pop()
-#     unittest.main()

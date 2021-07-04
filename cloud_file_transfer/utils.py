@@ -11,9 +11,8 @@ import multiprocessing as mp
 class CloudUpload(object):
     config = {}
 
-    def __init__(self, path, env_file):
+    def __init__(self, path):
         self.indir = path
-        self.env_file = env_file
 
     def get_aws_s3_upload_list(self):
         return self.config['DEFAULT_UPLOAD_TO_AWS_S3'].split(',')
@@ -60,7 +59,7 @@ class CloudUpload(object):
     def process_dir(self):
         # read all the files from the directory and its subdirectory
 
-        self.config = dotenv_values(self.env_file)
+        self.config = dotenv_values()
 
         master_upload_list = []
 
