@@ -1,15 +1,11 @@
 from constants import *
 
+from dotenv import dotenv_values
+from boto3.s3.transfer import S3Transfer
+import boto3
 import os
+import multiprocessing as mp
 
-def get_image_list():
-    return DEFAULT_IMAGES
-
-def get_media_list():
-    return DEFAULT_MEDIA
-
-def get_document_list():
-    return DEFAULT_DOCUMENT
 
 def get_aws_s3_upload_list():
     return DEFAULT_UPLOAD_TO_AWS_S3
@@ -26,48 +22,48 @@ def get_file_ext(file_path):
 def get_file_path(dirpath, file_name):
     return dirpath + '/' + file_name
 
-def upload_files(file_data, platform):
-    def upload_file(file, platform):
-        print('uploaded ' + file + ' to ' + platform)
+def upload_file(file_path, platform, file):
+    if platform == AWS_S3:
+        try:
+            client = boto3.client('s3',
+                                  aws_access_key_id=AWS_ACCESS_KEY_ID,
+                                  aws_secret_access_key=AWS_SECRET_ACCESS_KEY)
+            transfer = S3Transfer(client)
+            transfer.upload_file(file_path, AWS_BUCKET_NAME, file)
 
-    if isinstance(file_data, list):
-        for file in file_data:
-            upload_file(file, platform)
-    else:
-        upload_file(file, platform)     
+            print('upload succeeded for ' + file_path + ' to ' + platform)
+            print(LINE_SEPERATOR)
+        except Exception as e:
+            print('upload failed for ' + file_path + ' to ' + platform + ' with message: ' + str(e))
+            print(LINE_SEPERATOR)
+    elif platform == GCS:
+        print('uploaded ' + file_path + ' to ' + platform)
+        print(LINE_SEPERATOR)
 
 def process_dir(path):
     # read all the files from the directory and its subdirectory
     # dirpath, dirnames, filenames = os.walk(path)
-    _upload_aws_s3_list = []
-    _upload_gcs_list = []
 
-    upload_aws_s3_ext_set = set(get_aws_s3_upload_list())
-    upload_gcs_ext_set = set(get_gcs_upload_list())
+    config = dotenv_values("env")
+    
+
+    master_upload_list = []
+
+    upload_aws_s3_ext_set = set([ext.lower() for ext in get_aws_s3_upload_list()])
+    upload_gcs_ext_set = set([ext.lower() for ext in get_gcs_upload_list()])
 
     for (dirpath, dirnames, filenames) in os.walk(path):
         for file in filenames:
             file_path = get_file_path(dirpath, file)
             file_ext = get_file_ext(file_path)
             if file_ext in upload_aws_s3_ext_set:
-                _upload_aws_s3_list.append(file_path)
+                master_upload_list.append((file_path, AWS_S3, file))
             elif file_ext in upload_gcs_ext_set:
-                _upload_gcs_list.append(file_path)
+                master_upload_list.append((file_path, GCS, file))
 
-    if _upload_aws_s3_list:
-        upload_files(_upload_aws_s3_list, AWS_S3)
-
-    if _upload_gcs_list:
-        upload_files(_upload_gcs_list, GCS)
-
-
-
-
-
-
-
-
-
-
-
-
+    if master_upload_list:
+        print(LINE_SEPERATOR)
+        pool = mp.Pool(mp.cpu_count())
+        results = pool.starmap_async(upload_file, master_upload_list).get()
+        pool.close()
+        pool.join()
