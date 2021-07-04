@@ -1,4 +1,4 @@
-from constants import *
+from cloud_file_transfer.constants import *
 
 from dotenv import dotenv_values
 from boto3.s3.transfer import S3Transfer

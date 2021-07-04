@@ -9,6 +9,12 @@ setup(
     author_email='palanshagarwal@gmail.com',
     license='BSD',
     packages=['cloud_file_transfer'],
+    entry_points={
+        "console_scripts": [
+            "cloud_file_transfer = cloud_file_transfer.__main__:main"
+        ]
+    },
+
     install_requires=['boto3==1.16.63',
                       'google-cloud-storage==1.32.0',
                       'python-dotenv==0.18.0',                
